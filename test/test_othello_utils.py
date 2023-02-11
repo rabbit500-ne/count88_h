@@ -1,0 +1,179 @@
+import pytest
+from lib import othello_utils as ou
+
+TEST_COLOR_INVERSION = [
+    (ou.BORD_WB(b=0x0000001008000000, w=0x0000000810000000), ou.BORD_WB(b=0x0000000810000000, w=0x0000001008000000)),
+    (ou.BORD_WB(b=0x0071000008000000, w=0x0000000810000000), ou.BORD_WB(b=0x0000000810000000, w=0x0071000008000000)),
+]
+
+TEST_ROTATE_90 = [
+    (ou.BORD_WB(b=0x0000001008000000, w=0x0000000810000000), ou.BORD_WB(b=0x0000000810000000, w=0x0000001008000000)),
+    (ou.BORD_WB(b=0x0000000000000002, w=0x0000000000004000), ou.BORD_WB(b=0x0001000000000000, w=0x0000000000000200)),
+]
+
+TEST_ROTATE_180 = [
+    (ou.BORD_WB(b=0x0000000000004000, w=0x0102000000000000), ou.BORD_WB(b=0x0002000000000000, w=0x000000000004080)),
+]
+
+TEST_ROTATE_270 = [
+    (ou.BORD_WB(b=0x0000000000004000, w=0x0102000000000000), ou.BORD_WB(b=0x0040000000000000, w=0x000000000000201)),
+]
+
+
+@pytest.mark.parametrize(("in_board, correct_board"), TEST_COLOR_INVERSION)
+def test_color_inversion(in_board, correct_board):
+    ans_bord = ou.color_inversion(in_board)
+    assert ans_bord == correct_board
+
+@pytest.mark.parametrize(("in_board, correct_board"), TEST_ROTATE_90)
+def test_rotate90(in_board, correct_board):
+    ans_board = ou.rotate90(in_board)
+    ou.print_board_wb(ans_board)
+    assert ans_board == correct_board
+
+@pytest.mark.parametrize(("in_board, correct_board"), TEST_ROTATE_180)
+def test_rotate180(in_board, correct_board):
+    # ou.print_board_wb(in_board)
+    ans_board = ou.rotate180(in_board)
+    # ou.print_board_wb(ans_board)
+    # ou.print_board_wb(correct_board)
+    assert ans_board == correct_board
+
+@pytest.mark.parametrize(("in_board, correct_board"), TEST_ROTATE_270)
+def test_rotate270(in_board, correct_board):
+    # ou.print_board_wb(in_board)
+    ans_board = ou.rotate270(in_board)
+    # ou.print_board_wb(ans_board)
+    # ou.print_board_wb(correct_board)
+    assert ans_board == correct_board
+
+"""
+00000000
+00000000
+00000000
+00010000
+00001000
+00000000
+00000000
+00000000
+↓
+00000000
+00000000
+00000000
+00001000
+00010000
+00000000
+00000000
+00000000
+
+00000000
+00000000
+00000000
+00000000
+00000000
+00000000
+00000000
+00000010
+↓
+00000000
+00000001
+00000000
+00000000
+00000000
+00000000
+00000000
+00000000
+
+00000000
+00000000
+00000000
+00000000
+00000000
+00000000
+01000000
+00000000
+↓
+00000000
+00000000
+00000000
+00000000
+00000000
+00000000
+00000010
+00000000
+
+
+# 180 度
+00000000
+00000000
+00000000
+00000000
+00000000
+00000000
+01000000
+00000000
+↓
+00000000
+00000010
+00000000
+00000000
+00000000
+00000000
+00000000
+00000000
+
+00000001
+00000010
+00000000
+00000000
+00000000
+00000000
+00000000
+00000000
+↓
+00000000
+00000000
+00000000
+00000000
+00000000
+00000000
+01000000
+10000000
+
+# 270 度
+00000000
+00000000
+00000000
+00000000
+00000000
+00000000
+01000000
+00000000
+↓
+00000000
+01000000
+00000000
+00000000
+00000000
+00000000
+00000000
+00000000
+
+00000001
+00000010
+00000000
+00000000
+00000000
+00000000
+00000000
+00000000
+↓
+00000000
+00000000
+00000000
+00000000
+00000000
+00000000
+00000010
+00000001
+"""

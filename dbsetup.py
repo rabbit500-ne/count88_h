@@ -1,6 +1,7 @@
 import enum 
 import sqlite3
 from lib.define import BLACK,WHITE
+import lib.othello_utils as ou
 
 DB_FILE_PATH = "./resource/othello.db"
 
@@ -8,6 +9,7 @@ DB_FILE_PATH = "./resource/othello.db"
 CREATE_STAGE_TABLES_SQL = \
 """ CREATE TABLE IF NOT EXISTS %s (
     id integer PRIMARY KEY,
+    hash integer,
     hand bool,
     board_b text,
     board_w text,
@@ -18,18 +20,13 @@ CREATE_STAGE_TABLES_SQL = \
     next_stages text
 ); """
 
-SEED_RECORD = \
-f"""
-INSERT INTO s4 (hand, board_b, board_w) 
-SELECT ?, ?, ?
-WHERE NOT EXISTS (SELECT 1 FROM s4 WHERE ID = 1);
-"""
+
 
 # "000000 00000000 00000000 000000100 00001000 00000000 00000000 000000000"
 
-def create_db():
+def create_db(db_file_path):
     # データベースに接続
-    conn = sqlite3.connect(DB_FILE_PATH)
+    conn = sqlite3.connect(db_file_path)
 
     # カーソルを取得
     cursor = conn.cursor()
@@ -44,15 +41,22 @@ def create_db():
     # データベースとの接続を閉じる
     conn.close()
 
-def seed():
-    conn = sqlite3.connect(DB_FILE_PATH)
+def seed(db_file_path):
+    conn = sqlite3.connect(db_file_path)
     cursor = conn.cursor()
-    cursor.execute(SEED_RECORD,(BLACK,str(int(0x0000001008000000)), str(int(0x0000000810000000))))
+    SEED_RECORD = \
+    f"""
+    INSERT INTO s4 (hash, hand, board_b, board_w) 
+    SELECT ?, ?, ?, ?
+    WHERE NOT EXISTS (SELECT 1 FROM s4 WHERE ID = 1);
+    """
+    board = ou.BORD_WB(w=int(0x0000000810000000),b=int(0x0000001008000000))
+    cursor.execute(SEED_RECORD,(board.hash, BLACK, board.str_b, board.str_w))
     conn.commit()
     conn.close()
 
 
 if __name__ == "__main__":
-    create_db()
-    seed()
+    create_db(DB_FILE_PATH)
+    seed(DB_FILE_PATH)
     

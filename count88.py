@@ -4,7 +4,7 @@ from  lib.database_utils import OthelloDb as db
 from lib.define import DuplicateType, Stage, BLACK, WHITE, Status
 from lib.common import *
 
-DB_PATH = "./resource/othello.db"
+DEFULT_DB_PATH = "./resource/othello.db"
 
 def create_next_stage(tbl_num, stage : Stage):
     selected = 0
@@ -38,7 +38,7 @@ def create_next_stage(tbl_num, stage : Stage):
                 pass_count = 1,
             )
         id = db.create_stage(next_stage.tbl_num, next_stage)
-        db.set_next_stage(tbl_num, stage, [f"{tbl_num}-{id}"])
+        db.set_next_stages(tbl_num, stage, [f"{tbl_num}-{id}"])
     else:
         raise Exception()
 
@@ -46,7 +46,9 @@ def get_target_stage(tbl_num=4):
     return db.get_target_stage(tbl_num)
 
 def cnv_duplicate_stage(stage, duplicate_type):
-    if duplicate_type == DuplicateType.POINT_TARGET_90:
+    if duplicate_type == DuplicateType.UNDECIDED:
+        return stage
+    elif duplicate_type == DuplicateType.POINT_TARGET_90:
         return Stage(
             tbl_num=stage.tbl_num,
             hand= stage.hand,
@@ -155,8 +157,6 @@ def cnv_duplicate_stage(stage, duplicate_type):
 
 def search_duplicate_stage(table_num, stage):
     for duplicate_type in DuplicateType:
-        if duplicate_type == DuplicateType.UNDECIDED:
-            continue
         cnv_stage = cnv_duplicate_stage(stage, duplicate_type)
         duplicate_id = db.search_duplicate_stage(table_num, cnv_stage, stage.id)
         if duplicate_id is not None:
@@ -171,14 +171,10 @@ def search_duplicate_stage(table_num, stage):
     else:
         # 重複なし
         stage.status = Status.ORIGINAL
-        print("original")
         db.set_duplicate_type(table_num, stage)
         return False
 
-def counter(tbl_num):
-    
-    db.initial(DB_PATH)
-
+def counter(tbl_num, db_path):
     while True:
         stage = get_target_stage(tbl_num)
         if stage is None:
@@ -208,12 +204,15 @@ class Data():
 
 def main(args):
     data = Data()
+    db.initial(args.dbpath, use_memory=args.notmem)
     for i in range(args.start, args.start + args.depth):
         s = time.time()
-        counter(i)
+        
+        counter(i,args.dbpath)
         e = time.time() - s
-        size = os.path.getsize(DB_PATH)
+        size = os.path.getsize(args.dbpath)
         data.set(i, e, size)
+        db.save()
 
     data.dump(f"./resource/{get_current_time_str()}_time.csv")
 
@@ -221,6 +220,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="This is a sample script using argparse.")
     parser.add_argument("-s", "--start", type=int, default=4, required=True, help="Start stage number")
     parser.add_argument("-d", "--depth", type=int, default=1, help="Depth from start stage.")
+    parser.add_argument("-p", "--dbpath", type=str, default=DEFULT_DB_PATH, help="DB file path.")
+    parser.add_argument("-n", "--notmem", action="store_false", help="Not use memory.")
 
     main(parser.parse_args())
 
